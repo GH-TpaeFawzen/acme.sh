@@ -189,14 +189,14 @@ __red() {
 
 _printargs() {
   _exitstatus="$?"
-  if [ -z "$NO_TIMESTAMP" ] || [ "$NO_TIMESTAMP" = "0" ]; then
+  case "$NO_TIMESTAMP" in (''|'0')
     printf -- "%s" "[$(date)] "
-  fi
-  if [ -z "$2" ]; then
+  esac
+  case "$2" in ('')
     printf -- "%s" "$1"
-  else
+  ;;(*)
     printf -- "%s" "$1='$2'"
-  fi
+  esac
   printf "\n"
   # return the saved exit status
   return "$_exitstatus"
