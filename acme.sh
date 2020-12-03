@@ -172,18 +172,32 @@ if [ -t 1 ]; then
 fi
 
 __green() {
-  if [ "${__INTERACTIVE}${ACME_NO_COLOR:-0}" = "10" -o "${ACME_FORCE_COLOR}" = "1" ]; then
+  set -- "$1" no
+  case "${__INTERACTIVE}${ACME_NO_COLOR:-0}" in ('10')
+    set -- "$1" yes
+  esac
+  case "${ACME_FORCE_COLOR}" in ('1')
+    set -- "$1" yes
+  esac
+  case "$2" in ('yes')
     printf '\33[1;32m%b\33[0m' "$1"
     return
-  fi
+  esac
   printf -- "%b" "$1"
 }
 
 __red() {
-  if [ "${__INTERACTIVE}${ACME_NO_COLOR:-0}" = "10" -o "${ACME_FORCE_COLOR}" = "1" ]; then
+  set -- "$1" no
+  case "${__INTERACTIVE}${ACME_NO_COLOR:-0}" in ('10')
+    set -- "$1" yes
+  esac
+  case "${ACME_FORCE_COLOR}" in ('1')
+    set -- "$1" yes
+  esac
+  case "$2" in ('yes')
     printf '\33[1;31m%b\33[0m' "$1"
     return
-  fi
+  esac
   printf -- "%b" "$1"
 }
 
