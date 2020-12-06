@@ -250,24 +250,24 @@ _dlg_versions() {
 #class
 _syslog() {
   _exitstatus="$?"
-  if [ "${SYS_LOG:-$SYSLOG_LEVEL_NONE}" = "$SYSLOG_LEVEL_NONE" ]; then
+  case "${SYS_LOG:-$SYSLOG_LEVEL_NONE}" in ("$SYSLOG_LEVEL_NONE")
     return
-  fi
+  esac
   _logclass="$1"
   shift
-  if [ -z "$__logger_i" ]; then
+  case "$__logger_i" in ('')
     if _contains "$(logger --help 2>&1)" "-i"; then
       __logger_i="logger -i"
     else
       __logger_i="logger"
     fi
-  fi
+  esac
   $__logger_i -t "$PROJECT_NAME" -p "$_logclass" "$(_printargs "$@")" >/dev/null 2>&1
   return "$_exitstatus"
 }
 
 _log() {
-  [ -z "$LOG_FILE" ] && return
+  case "$LOG_FILE" in ('') return; esac
   _printargs "$@" >>"$LOG_FILE"
 }
 
@@ -282,14 +282,14 @@ _info() {
 _err() {
   _syslog "$SYSLOG_ERROR" "$@"
   _log "$@"
-  if [ -z "$NO_TIMESTAMP" ] || [ "$NO_TIMESTAMP" = "0" ]; then
+  case "$NO_TIMESTAMP" in (''|'0')
     printf -- "%s" "[$(date)] " >&2
-  fi
-  if [ -z "$2" ]; then
+  esac
+  case "$2" in ('')
     __red "$1" >&2
-  else
+  ;;(*)
     __red "$1='$2'" >&2
-  fi
+  esac
   printf "\n" >&2
   return 1
 }
@@ -306,9 +306,9 @@ __debug_bash_helper() {
   fi
   # Return extra debug info when running with bash, otherwise return empty
   # string.
-  if [ -z "${BASH_VERSION}" ]; then
+  case "${BASH_VERSION}" in ('')
     return
-  fi
+  esac
   # We are a bash shell at this point, return the filename, function name, and
   # line number as a string
   _dbh_saveIFS=$IFS
@@ -321,10 +321,10 @@ __debug_bash_helper() {
   eval '_dbh_called=($(caller 1))'
   IFS=$_dbh_saveIFS
   eval '_dbh_file=${_dbh_called[2]}'
-  if [ -n "${_script_home}" ]; then
+  case "${_script_home}" in (?*)
     # Trim off the _script_home directory name
     eval '_dbh_file=${_dbh_file#$_script_home/}'
-  fi
+  esac
   eval '_dbh_function=${_dbh_called[1]}'
   eval '_dbh_lineno=${_dbh_called[0]}'
   printf "%-40s " "$_dbh_file:${_dbh_function}:${_dbh_lineno}"
@@ -6672,15 +6672,15 @@ _processAccountConf() {
 
 _checkSudo() {
   if [ "$SUDO_GID" ] && [ "$SUDO_COMMAND" ] && [ "$SUDO_USER" ] && [ "$SUDO_UID" ]; then
-    if [ "$SUDO_USER" = "root" ] && [ "$SUDO_UID" = "0" ]; then
+    case "$SUDO_USER"/"$SUDO_UID" in ("root"/"0")
       #it's root using sudo, no matter it's using sudo or not, just fine
       return 0
-    fi
-    if [ -n "$SUDO_COMMAND" ]; then
+    esac
+    case "$SUDO_COMMAND" in (?*)
       #it's a normal user doing "sudo su", or `sudo -i` or `sudo -s`, or `sudo su acmeuser1`
       _endswith "$SUDO_COMMAND" /bin/su || _contains "$SUDO_COMMAND" "/bin/su " || grep "^$SUDO_COMMAND\$" /etc/shells >/dev/null 2>&1
       return $?
-    fi
+    esac
     #otherwise
     return 1
   fi
@@ -7433,9 +7433,9 @@ _process() {
     ;;
   esac
   _ret="$?"
-  if [ "$_ret" != "0" ]; then
+  case "$_ret" in ([!0]*)
     return $_ret
-  fi
+  esac
 
   if [ "${_CMD}" = "install" ]; then
     if [ "$_log" ]; then
@@ -7451,11 +7451,11 @@ _process() {
 
     if [ "$_syslog" ]; then
       if _exists logger; then
-        if [ "$_syslog" = "0" ]; then
+        case "$_syslog" in ('0')
           _clearaccountconf "SYS_LOG"
-        else
+        ;;(*)
           _saveaccountconf "SYS_LOG" "$_syslog"
-        fi
+        esac
       else
         _err "The 'logger' command is not found, can not enable syslog."
         _clearaccountconf "SYS_LOG"
@@ -7475,7 +7475,7 @@ if [ "$INSTALLONLINE" ]; then
 fi
 
 main() {
-  [ -z "$1" ] && showhelp && return
+  case "$1" in ('') showhelp; return; esac
   if _startswith "$1" '-'; then _process "$@"; else "$@"; fi
 }
 
